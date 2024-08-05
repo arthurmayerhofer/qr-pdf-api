@@ -1,9 +1,9 @@
 {
   "name": "qr-pdf-api",
   "version": "1.0.0",
-  "main": "src/main.js",
+  "main": "api/main.js",
   "scripts": {
-    "start": "node src/main.js"
+    "start": "node api/main.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

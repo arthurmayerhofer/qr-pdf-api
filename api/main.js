@@ -1,8 +1,7 @@
-// src/main.js
 import express from 'express';
-import cors from 'cors'; // Importar o pacote cors
+import cors from 'cors';
 import multer from 'multer';
-import { generateQR } from './interfaces/controllers/QRCodeController.js';
+import { generateQR } from '../src/interfaces/controllers/QRCodeController.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -80,7 +79,7 @@ app.post('/api/qrcode', upload.single('pdfFile'), async (req, res) => {
     console.log(`Local PDF do modificado: ${modifiedPdfPath}`);
 
     // Enviar o caminho do PDF modificado de volta ao cliente
-    res.json({ fileUrl: `http://localhost:3000/storage/${path.basename(modifiedPdfPath)}` });
+    res.json({ fileUrl: `http://${req.headers.host}/storage/${path.basename(modifiedPdfPath)}` });
 
     // Remover o arquivo PDF original de upload após o processamento
     try {
@@ -101,8 +100,4 @@ app.post('/api/qrcode', upload.single('pdfFile'), async (req, res) => {
 // Rota para servir arquivos do diretório storage
 app.use('/storage', express.static(storageDir));
 
-const server = app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
-server.timeout = 60000; // Aumentar o tempo de espera do servidor
+export default app;

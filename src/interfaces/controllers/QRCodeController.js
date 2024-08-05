@@ -1,32 +1,27 @@
-import fs from 'fs';
 import { PDFDocument } from 'pdf-lib';
 import QRCode from 'qrcode';
 
-export async function generateQR(text, pdfBuffer) {
+export const generateQR = async (text, pdfBuffer) => {
   try {
-    // Carregar o documento PDF a partir do buffer
     const pdfDoc = await PDFDocument.load(pdfBuffer);
-    const pages = pdfDoc.getPages();
-    const firstPage = pages[0];
+    const page = pdfDoc.getPage(0); // Obtém a primeira página do PDF
 
-    // Gerar o QR code
-    const qrImageDataUrl = await QRCode.toDataURL(text);
-    const qrImage = await pdfDoc.embedPng(qrImageDataUrl);
+    const qrResponse = await QRCode.toDataURL(text);
+    const qrImage = await pdfDoc.embedPng(qrResponse);
 
-    // Adicionar o QR code à primeira página
-    const { width, height } = firstPage.getSize();
-    firstPage.drawImage(qrImage, {
-      x: width - 100,
-      y: height - 100,
-      width: 100,
-      height: 100
+    // Define o tamanho em pixels (2x2 cm ≈ 56.69x56.69 pixels a 72 DPI)
+    const qrSize = 56.69;
+    page.drawImage(qrImage, {
+      x: page.getWidth() - qrSize - 10, // Posiciona no canto inferior direito com margem
+      y: 20,
+      width: qrSize,
+      height: qrSize,
     });
 
-    // Salvar o PDF modificado e retornar os bytes
-    const modifiedPdfBytes = await pdfDoc.save();
-    return modifiedPdfBytes;
-  } catch (error) {
-    console.error('Erro na função generateQR:', error);
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes; // Retorna o PDF com o QR Code inserido
+  } catch (err) {
+    console.error('Error creating PDF with QR:', err);
     throw new Error('Error creating PDF with QR');
   }
-}
+};

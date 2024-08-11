@@ -3,7 +3,7 @@ import cors from "cors";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
-import { generateQR } from "../src/interfaces/controllers/QRCodeController.js";
+import { drawPdfQR } from "../src/controllers/QRCodeController.js";
 
 const app = express();
 const port = 3000;
@@ -23,12 +23,15 @@ app.use(
   })
 );
 
-// Endpoint para gerar QR Code com PDF
+// Configurar express para parsear JSON no corpo das requisições
+app.use(express.json());
+
+// Endpoint para gerar QR Codes com PDF
 app.post("/api/qrcode", upload.single("pdfFile"), async (req, res) => {
   try {
     console.log("Requisição recebida para /api/qrcode");
 
-    const { text } = req.body;
+    const { text1, text2 } = req.body;
     const pdfFile = req.file;
 
     if (!pdfFile) {
@@ -36,10 +39,16 @@ app.post("/api/qrcode", upload.single("pdfFile"), async (req, res) => {
       return res.status(400).json({ error: "Nenhum arquivo PDF enviado" });
     }
 
-    console.log(`Arquivo PDF recebido: ${pdfFile.originalname}`);
+    if (!text1 || !text2) {
+      console.log("Texto(s) ausente(s) para geração de QR Code");
+      return res.status(400).json({ error: "Texto(s) ausente(s) para geração de QR Code" });
+    }
 
-    // Gerar o QR code e obter o PDF modificado
-    const modifiedPdfBytes = await generateQR(text, pdfFile.buffer);
+    console.log(`Arquivo PDF recebido: ${pdfFile.originalname}`);
+    console.log(`Textos recebidos para QR Codes: '${text1}' e '${text2}'`);
+
+    // Gerar os QR codes e obter o PDF modificado
+    const modifiedPdfBytes = await drawPdfQR(text1, text2, pdfFile.buffer);
 
     if (!modifiedPdfBytes) {
       console.error("Erro: Nenhum dado de PDF modificado gerado");
